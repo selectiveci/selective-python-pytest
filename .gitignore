@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+*.xml
+htmlcov/
+.coverage
+examples/django_skeleton/.pytest_cache/
+examples/django_skeleton/**/__pycache__/

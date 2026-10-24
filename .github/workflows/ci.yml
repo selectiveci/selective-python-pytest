@@ -1,0 +1,131 @@
+name: ci
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+jobs:
+  transport:
+    runs-on: ubuntu-24.04
+    env:
+      TRANSPORT_SHA: 44a9c7abde5a35d869c5f71780d56e26c0c6f8bd
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+      - name: build transport and transport-conformance
+        run: |
+          CARGO_TARGET_DIR="$RUNNER_TEMP/target-$TRANSPORT_SHA" cargo install --locked \
+            --git https://github.com/selectiveci/transport --rev "$TRANSPORT_SHA" \
+            --bin transport --bin transport-conformance --root "$RUNNER_TEMP/transport"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transport
+          path: ${{ runner.temp }}/transport/bin
+  wheel:
+    runs-on: ubuntu-24.04
+    env:
+      TRANSPORT_SHA: 44a9c7abde5a35d869c5f71780d56e26c0c6f8bd
+      PLATFORM_TAG: manylinux_2_17_x86_64.musllinux_1_1_x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: build the static transport and the platform wheel
+        run: |
+          sudo apt-get install -y musl-tools
+          git init -q "$RUNNER_TEMP/transport"
+          git -C "$RUNNER_TEMP/transport" fetch -q --depth 1 https://github.com/selectiveci/transport.git "$TRANSPORT_SHA"
+          git -C "$RUNNER_TEMP/transport" checkout -q FETCH_HEAD
+          cargo build --release --locked --target x86_64-unknown-linux-musl --bin transport --manifest-path "$RUNNER_TEMP/transport/Cargo.toml"
+          python -m pip install wheel
+          packaging/wheel.sh "$RUNNER_TEMP/transport/target/x86_64-unknown-linux-musl/release/transport" "$PLATFORM_TAG" dist
+      - name: the bundled transport runs on musl and glibc
+        run: |
+          for image in python:3.12-alpine python:3.12-slim-bookworm; do
+            docker run --rm -v "$PWD/dist:/dist:ro" "$image" sh -c 'pip install -q /dist/*.whl && python -c "from selective_pytest.transport import check_stdio, resolve_binary; check_stdio(resolve_binary())"'
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-linux-x86_64
+          path: dist/*.whl
+  test:
+    needs: transport
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        pytest: ["8.4.2", "9.1.1"]
+        include:
+          - python: "3.9"
+            pytest: "7.4.4"
+          - python: "3.9"
+            pytest: "8.4.2"
+          - python: "3.10"
+            pytest: "8.4.2"
+            django: "5.2.18"
+          - python: "3.14"
+            pytest: "9.1.1"
+            django: "6.0.9"
+          - python: "3.14"
+            pytest: "newest"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: transport
+          path: ${{ runner.temp }}/transport-dist
+      - name: test
+        env:
+          SELECTIVE_TRANSPORT: ${{ runner.temp }}/transport-dist/transport
+          PYTEST_VERSION: ${{ matrix.pytest }}
+          DJANGO_VERSION: ${{ matrix.django }}
+        run: |
+          chmod +x "$SELECTIVE_TRANSPORT"
+          if [ "$PYTEST_VERSION" = newest ]; then
+            python -m pip install --upgrade -e ".[dev]" pytest
+          else
+            python -m pip install -e ".[dev]" "pytest==$PYTEST_VERSION"
+          fi
+          if [ -n "$DJANGO_VERSION" ]; then
+            python -m pip install "Django==$DJANGO_VERSION" "pytest-django==4.14.0"
+          fi
+          python -m pip list | grep -i -E "^(pytest|django|pytest-django) "
+          python -m pytest
+  conformance:
+    needs: transport
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: "3.9"
+            pytest: "7.4.4"
+          - python: "3.14"
+            pytest: "9.1.1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: transport
+          path: ${{ runner.temp }}/transport-dist
+      - name: transport-conformance
+        working-directory: conformance
+        env:
+          PYTEST_VERSION: ${{ matrix.pytest }}
+        run: |
+          chmod +x "$RUNNER_TEMP/transport-dist/transport" "$RUNNER_TEMP/transport-dist/transport-conformance"
+          python -m pip install .. "pytest==$PYTEST_VERSION"
+          "$RUNNER_TEMP/transport-dist/transport-conformance" run \
+            --client "python -m selective_pytest pytest tests" \
+            --fixture-ids fixture-ids.json \
+            --transport "$RUNNER_TEMP/transport-dist/transport"

@@ -1,0 +1,7 @@
+{
+  "pass": "tests/test_cases.py::test_case_pass",
+  "fail": "tests/test_cases.py::test_case_fail",
+  "pending": "tests/test_cases.py::test_case_pend",
+  "flaky": "tests/test_cases.py::test_case_flake",
+  "before_all_seconds": 0.25
+}
