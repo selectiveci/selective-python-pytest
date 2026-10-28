@@ -87,12 +87,6 @@ def _line_number(item):
     return 0 if lineno is None else lineno + 1
 
 
-def _set_nodeid(item, nodeid):
-    item._nodeid = nodeid
-    if hasattr(item, "_id"):
-        item._id = type(item._id).parse(nodeid)
-
-
 def _description(item):
     return clean_text(item.name or item.nodeid)
 
@@ -292,7 +286,7 @@ class SelectivePlugin:
                 suffix += 1
             if suffix > 2:
                 warn("duplicate test id " + original + "; disambiguated as " + wired)
-            _set_nodeid(item, wired)
+            item._nodeid = wired
             self.native_ids[wired] = original
             seen.add(wired)
         self.ordered = list(items)

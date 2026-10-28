@@ -792,8 +792,6 @@ def test_filters_and_duplicate_and_long_ids(tmp_path):
         "            other = item\n"
         "    if fast is not None and other is not None:\n"
         "        other._nodeid = fast.nodeid\n"
-        "        if hasattr(other, '_id'):\n"
-        "            other._id = type(other._id).parse(fast.nodeid)\n"
     )
     (root / "pytest.ini").write_text("[pytest]\nmarkers =\n    slow: slow\n")
     server = MockServer()
@@ -1172,8 +1170,6 @@ def test_long_duplicate_ids_stay_within_255(tmp_path):
         "    native = " + repr(native) + "\n"
         "    for item in items:\n"
         "        item._nodeid = native\n"
-        "        if hasattr(item, '_id'):\n"
-        "            item._id = type(item._id).parse(native)\n"
     )
     server = MockServer()
     proc = None
@@ -1684,10 +1680,7 @@ def test_surrogate_nodeid_is_wire_safe(tmp_path):
     (root / "tests" / "conftest.py").write_text(
         "def pytest_collection_modifyitems(items):\n"
         "    for item in items:\n"
-        "        nodeid = item.nodeid + '\\ud800'\n"
-        "        item._nodeid = nodeid\n"
-        "        if hasattr(item, '_id'):\n"
-        "            item._id = type(item._id).parse(nodeid)\n"
+        "        item._nodeid = item.nodeid + '\\ud800'\n"
     )
     env = os.environ.copy()
     for key in list(env):
