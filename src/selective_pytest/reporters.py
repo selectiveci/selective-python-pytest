@@ -81,7 +81,7 @@ def forget_terminal(config, nodeid):
         return
     for key, reports in list(stats.items()):
         stats[key] = [
-            report for report in reports if getattr(report, "nodeid", None) != nodeid
+            report for report in reports if report.nodeid != nodeid
         ]
 
 

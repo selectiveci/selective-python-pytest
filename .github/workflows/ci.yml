@@ -5,6 +5,19 @@ on:
   schedule:
     - cron: "0 6 * * 1"
 jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: dead code and pytest contract
+        run: |
+          python3 -m pip install "pytest==7.4.4"
+          python3 tools/check_dead_code.py
+          python3 tools/check_pytest_contract.py
+          python3 -m pytest tests/test_simplicity_checks.py
   transport:
     runs-on: ubuntu-24.04
     env:
