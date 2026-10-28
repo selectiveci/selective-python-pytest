@@ -88,17 +88,16 @@ def _line_number(item):
 
 
 def _description(item):
-    name = getattr(item, "name", "") or item.nodeid
-    return clean_text(name)
+    return clean_text(item.name or item.nodeid)
 
 
 def _fold(reports):
     phases = [reports.get("setup"), reports.get("call"), reports.get("teardown")]
     phases = [report for report in phases if report is not None]
-    failed = [report for report in phases if getattr(report, "failed", False)]
+    failed = [report for report in phases if report.failed]
     if failed:
         return "failed", failed[0]
-    skipped = [report for report in phases if getattr(report, "skipped", False)]
+    skipped = [report for report in phases if report.skipped]
     if skipped:
         return "pending", skipped[0]
     call = reports.get("call")
@@ -185,7 +184,7 @@ class SelectivePlugin:
         writer.write = lambda *args, **kwargs: None
 
     def pytest_collectreport(self, report):
-        if getattr(report, "failed", False):
+        if report.failed:
             self.collect_failures.append(report)
 
     @pytest.hookimpl(trylast=True)
