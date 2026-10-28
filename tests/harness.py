@@ -480,6 +480,8 @@ def write_conformance_suite(root, flake_file, finish_mark):
         "    for name in ORDER:\n"
         "        item = by_name['test_' + name.replace('-', '_')]\n"
         "        item._nodeid = name\n"
+        "        if hasattr(item, '_id'):\n"
+        "            item._id = type(item._id).parse(name)\n"
         "        ordered.append(item)\n"
         "    items[:] = ordered\n"
         "\n"
