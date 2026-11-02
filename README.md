@@ -25,7 +25,7 @@ selective pytest tests
 selective exec pytest tests -k tax
 ```
 
-The Linux x86_64 platform wheel (`py3-none-manylinux_2_17_x86_64.musllinux_1_1_x86_64`) carries a static musl transport, so it runs on glibc and musl systems alike. `packaging/wheel.sh <transport binary> <platform tag>` builds it, and CI builds it from the pinned transport SHA. The client uses `SELECTIVE_TRANSPORT` when set, then the bundled binary, then `transport` on `PATH`. The binary must support `--stdio`. A missing binary, a transport without `--stdio`, and one that cannot execute each get their own error, and the transport's own stderr reaches the terminal. Set the usual Selective CI variables (`SELECTIVE_HOST`, `SELECTIVE_API_KEY`, `SELECTIVE_PLATFORM`, `SELECTIVE_RUN_ID`, `SELECTIVE_RUN_ATTEMPT`, `SELECTIVE_BRANCH`, `SELECTIVE_SHA`, `SELECTIVE_GIT_REPO`, `SELECTIVE_GIT_PROVIDER`). pytest-xdist workers are rejected with exit 4 whether `-n` comes from the command line or `addopts`; `-n0` is allowed.
+The Linux x86_64 platform wheel (`py3-none-manylinux_2_17_x86_64.musllinux_1_1_x86_64`) carries a static musl transport, so it runs on glibc and musl systems alike. `packaging/wheel.sh <transport binary> <platform tag>` builds it, and CI builds it from the pinned transport tag. The client uses `SELECTIVE_TRANSPORT` when set, then the bundled binary, then `transport` on `PATH`. The binary must support `--stdio`. A missing binary, a transport without `--stdio`, and one that cannot execute each get their own error, and the transport's own stderr reaches the terminal. Set the usual Selective CI variables (`SELECTIVE_HOST`, `SELECTIVE_API_KEY`, `SELECTIVE_PLATFORM`, `SELECTIVE_RUN_ID`, `SELECTIVE_RUN_ATTEMPT`, `SELECTIVE_BRANCH`, `SELECTIVE_SHA`, `SELECTIVE_GIT_REPO`, `SELECTIVE_GIT_PROVIDER`). pytest-xdist workers are rejected with exit 4 whether `-n` comes from the command line or `addopts`; `-n0` is allowed.
 
 A setup error prints a red block with the message and exits 1; `selective --debug pytest` raises it with a traceback instead. `selective --log pytest` writes every command received and every response sent to `log/<runner_id>.log`. Diff hints are relative to the directory pytest runs from, so a project in a subdirectory of the repository gets them too.
 
@@ -33,10 +33,10 @@ The example under `examples/django_skeleton` is a pytest-django project with dat
 
 ## Tests
 
-Build [transport](https://github.com/selectiveci/transport) and its conformance runner at `44a9c7abde5a35d869c5f71780d56e26c0c6f8bd`, using a fresh `CARGO_TARGET_DIR`:
+Build [transport](https://github.com/selectiveci/transport) and its conformance runner at the `v0.2.0` commit, `553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542`, using a fresh `CARGO_TARGET_DIR`:
 
 ```
-cargo install --locked --git https://github.com/selectiveci/transport --rev 44a9c7abde5a35d869c5f71780d56e26c0c6f8bd --bin transport --bin transport-conformance --root /path/to/transport
+cargo install --locked --git https://github.com/selectiveci/transport --rev 553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542 --bin transport --bin transport-conformance --root /path/to/transport
 ```
 
 Run the unit tests, then the transport's conformance suite against the fixture project in `conformance/`:
