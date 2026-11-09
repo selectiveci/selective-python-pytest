@@ -8,13 +8,14 @@ jobs:
   transport:
     runs-on: ubuntu-24.04
     env:
-      TRANSPORT_SHA: 44a9c7abde5a35d869c5f71780d56e26c0c6f8bd
+      TRANSPORT_RELEASE: v0.2.0
+      TRANSPORT_REV: 553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542
     steps:
       - uses: dtolnay/rust-toolchain@stable
       - name: build transport and transport-conformance
         run: |
-          CARGO_TARGET_DIR="$RUNNER_TEMP/target-$TRANSPORT_SHA" cargo install --locked \
-            --git https://github.com/selectiveci/transport --rev "$TRANSPORT_SHA" \
+          CARGO_TARGET_DIR="$RUNNER_TEMP/target-$TRANSPORT_REV" cargo install --locked \
+            --git https://github.com/selectiveci/transport --rev "$TRANSPORT_REV" \
             --bin transport --bin transport-conformance --root "$RUNNER_TEMP/transport"
       - uses: actions/upload-artifact@v4
         with:
@@ -23,7 +24,8 @@ jobs:
   wheel:
     runs-on: ubuntu-24.04
     env:
-      TRANSPORT_SHA: 44a9c7abde5a35d869c5f71780d56e26c0c6f8bd
+      TRANSPORT_RELEASE: v0.2.0
+      TRANSPORT_REV: 553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542
       PLATFORM_TAG: manylinux_2_17_x86_64.musllinux_1_1_x86_64
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +39,7 @@ jobs:
         run: |
           sudo apt-get install -y musl-tools
           git init -q "$RUNNER_TEMP/transport"
-          git -C "$RUNNER_TEMP/transport" fetch -q --depth 1 https://github.com/selectiveci/transport.git "$TRANSPORT_SHA"
+          git -C "$RUNNER_TEMP/transport" fetch -q --depth 1 https://github.com/selectiveci/transport.git "$TRANSPORT_REV"
           git -C "$RUNNER_TEMP/transport" checkout -q FETCH_HEAD
           cargo build --release --locked --target x86_64-unknown-linux-musl --bin transport --manifest-path "$RUNNER_TEMP/transport/Cargo.toml"
           python -m pip install wheel
