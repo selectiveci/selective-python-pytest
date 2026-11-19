@@ -33,10 +33,10 @@ The example under `examples/django_skeleton` is a pytest-django project with dat
 
 ## Tests
 
-Build [transport](https://github.com/selectiveci/transport) and its conformance runner at the `v0.2.0` commit, `553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542`, using a fresh `CARGO_TARGET_DIR`:
+Build [transport](https://github.com/selectiveci/transport) and its conformance runner at the `v0.3.0` commit, `a447773203dc5e778e5f0ef0bccd255e70c29938`, using a fresh `CARGO_TARGET_DIR`:
 
 ```
-cargo install --locked --git https://github.com/selectiveci/transport --rev 553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542 --bin transport --bin transport-conformance --root /path/to/transport
+cargo install --locked --git https://github.com/selectiveci/transport --rev a447773203dc5e778e5f0ef0bccd255e70c29938 --bin transport --bin transport-conformance --root /path/to/transport
 ```
 
 Run the unit tests, then the transport's conformance suite against the fixture project in `conformance/`:
@@ -44,5 +44,5 @@ Run the unit tests, then the transport's conformance suite against the fixture p
 ```
 SELECTIVE_TRANSPORT=/path/to/transport/bin/transport python -m pytest
 cd conformance
-/path/to/transport/bin/transport-conformance run --client "python -m selective_pytest pytest tests" --fixture-ids fixture-ids.json --transport /path/to/transport/bin/transport
+/path/to/transport/bin/transport-conformance run --client "python -m selective_pytest pytest tests" --fixture-ids fixture-ids.json --require-features manifest_http --transport /path/to/transport/bin/transport
 ```

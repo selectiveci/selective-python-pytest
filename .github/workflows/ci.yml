@@ -8,8 +8,8 @@ jobs:
   transport:
     runs-on: ubuntu-24.04
     env:
-      TRANSPORT_RELEASE: v0.2.0
-      TRANSPORT_REV: 553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542
+      TRANSPORT_RELEASE: v0.3.0
+      TRANSPORT_REV: a447773203dc5e778e5f0ef0bccd255e70c29938
     steps:
       - uses: dtolnay/rust-toolchain@stable
       - name: build transport and transport-conformance
@@ -24,8 +24,8 @@ jobs:
   wheel:
     runs-on: ubuntu-24.04
     env:
-      TRANSPORT_RELEASE: v0.2.0
-      TRANSPORT_REV: 553bb45b8bfa3ac9c9f7ed1ad71a8ac19d384542
+      TRANSPORT_RELEASE: v0.3.0
+      TRANSPORT_REV: a447773203dc5e778e5f0ef0bccd255e70c29938
       PLATFORM_TAG: manylinux_2_17_x86_64.musllinux_1_1_x86_64
     steps:
       - uses: actions/checkout@v4
@@ -130,4 +130,5 @@ jobs:
           "$RUNNER_TEMP/transport-dist/transport-conformance" run \
             --client "python -m selective_pytest pytest tests" \
             --fixture-ids fixture-ids.json \
+            --require-features manifest_http \
             --transport "$RUNNER_TEMP/transport-dist/transport"
